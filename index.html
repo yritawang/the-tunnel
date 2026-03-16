@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>the tunnel</title>
+<link href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="cursor"></div>
+<div id="tunnelBg"></div>
+<div id="flashOverlay"></div>
+<canvas id="bitmapCanvas"></canvas>
+
+<div id="hudText">KEEP YOUR EYE ON THE CENTER</div>
+
+<div id="circleContainer">
+  <div id="outerCircle"></div>
+  <div id="innerDot"></div>
+</div>
+
+<img id="jester" src="" alt="">
+
+<div id="dialogueBox">
+  <div id="dialogueLabel">A... local?</div>
+  <div id="dialogueText"></div>
+  <div id="dialogueBtns"></div>
+</div>
+
+<div id="cardOverlay">
+  <div id="cardPrompt">Pick a card.<br>any card</div>
+  <div id="cardRow"></div>
+</div>
+
+<div id="p5Canvas"></div>
+
+<div id="startScreen">
+  <div id="startTitle">KEEP YOUR EYE ON THE CENTER</div>
+  <div id="startBlackBox"></div>
+  <div id="startSubtitle">Go through the tunnel</div>
+  <div id="startInstruction">keep your mouse in the circle</div>
+  <div id="startWarning">do not play if you are epileptic</div>
+</div>
+
+<div id="endScreen"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+<script src="effects/pixelSort.js"></script>
+<script src="effects/glowCircles.js"></script>
+<script src="sketch.js"></script>
+</body>
+</html>
