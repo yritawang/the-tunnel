@@ -1,20 +1,23 @@
 'use strict';
-// config
+
+// ═══════════════════════════════════════════════════════
+// CONFIG
+// ═══════════════════════════════════════════════════════
 const SECTIONS = [
   {
     id: 1,
     frames: ['section1_1','section1_2','section1_3','section1_4'],
-    holdTimes: [7000, 5000, 8000, 6000],
+    holdTimes: [5250, 3750, 6000, 4500],
     jesterMood: 'ferretscheme',
     circleSizeStart: 180, circleSizeEnd: 145,
-    driftAmp: 0.04,
-    driftSpeed: 0.3,
+    driftAmp: 0.08,
+    driftSpeed: 0.6,
     driftErratic: false,
     loseTime: 3.0,
     cards: [
-      { name: '7 of clubs',  effect: 'sphere' },
-      { name: '2 of spades', effect: 'rectangles' },
-      { name: '6 of hearts', effect: 'eyes' },
+      { name: '9 of diamonds', effect: 'sphere' },
+      { name: 'Jack of clubs',  effect: 'rectangles' },
+      { name: '5 of spades',    effect: 'eyes' },
     ],
     sectionDialogue: null,
     afterCardDialogue: null,
@@ -22,13 +25,13 @@ const SECTIONS = [
   {
     id: 2,
     frames: ['section2_1','section2_2','section2_3','section2_4'],
-    holdTimes: [5000, 4000, 6000, 4500],
+    holdTimes: [3750, 3000, 4500, 3375],
     jesterMood: 'ferretshocked',
-    circleSizeStart: 155, circleSizeEnd: 120,
+    circleSizeStart: 160, circleSizeEnd: 125,
     driftAmp: 0.07,
     driftSpeed: 0.55,
     driftErratic: false,
-    loseTime: 2.5,
+    loseTime: 2.8,
     cards: [
       { name: '9 of diamonds', effect: 'shadows' },
       { name: 'Jack of clubs',  effect: 'shapes' },
@@ -40,11 +43,11 @@ const SECTIONS = [
   {
     id: 3,
     frames: ['section3_1','section3_2','section3_3','section3_4'],
-    holdTimes: [4000, 3500, 4500, 3000],
+    holdTimes: [5500, 5000, 6500, 5000],
     jesterMood: 'ferretangry',
-    circleSizeStart: 130, circleSizeEnd: 95,
-    driftAmp: 0.11,
-    driftSpeed: 0.85,
+    circleSizeStart: 135, circleSizeEnd: 100,
+    driftAmp: 0.13,
+    driftSpeed: 1.0,
     driftErratic: false,
     loseTime: 2.0,
     cards: [
@@ -58,13 +61,13 @@ const SECTIONS = [
   {
     id: 4,
     frames: ['section4_1','section4_2','section4_3','section4_4'],
-    holdTimes: [2500, 2000, 3000, 2000],
+    holdTimes: [7000, 6500, 8000, 6500],
     jesterMood: 'ferrethorror',
-    circleSizeStart: 110, circleSizeEnd: 70,
-    driftAmp: 0.15,
-    driftSpeed: 1.2,
-    driftErratic: true,
-    loseTime: 1.2,
+    circleSizeStart: 115, circleSizeEnd: 80,
+    driftAmp: 0.13,
+    driftSpeed: 1.6,
+    driftErratic: false,
+    loseTime: 2.0,
     cards: [
       { name: 'The Fool',  effect: 'everything' },
       { name: 'The Tower', effect: 'everything' },
@@ -78,7 +81,9 @@ const SECTIONS = [
 const EXIT_FRAME  = 'exit';
 const INTRO_FRAME = 'intro';
 
-
+// ═══════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════
 const G = {
   phase: 'start',
   currentSection: 0,
@@ -97,6 +102,9 @@ const G = {
   activeEffect: null,
 };
 
+// ═══════════════════════════════════════════════════════
+// DOM REFS
+// ═══════════════════════════════════════════════════════
 const $ = id => document.getElementById(id);
 const tunnelBg        = $('tunnelBg');
 const flashOverlay    = $('flashOverlay');
@@ -117,7 +125,11 @@ const p5CanvasDiv     = $('p5Canvas');
 const startScreen     = $('startScreen');
 const endScreen       = $('endScreen');
 const cursorEl        = $('cursor');
-// cursor
+const startBitmapCanvas = $('startBitmapCanvas');
+
+// ═══════════════════════════════════════════════════════
+// CURSOR
+// ═══════════════════════════════════════════════════════
 document.addEventListener('mousemove', e => {
   G.mouseX = e.clientX;
   G.mouseY = e.clientY;
@@ -127,6 +139,9 @@ document.addEventListener('mousemove', e => {
   innerDot.style.top   = e.clientY + 'px';
 });
 
+// ═══════════════════════════════════════════════════════
+// IMAGE PRELOAD
+// ═══════════════════════════════════════════════════════
 function preloadImages() {
   const allFrames = [INTRO_FRAME, EXIT_FRAME];
   SECTIONS.forEach(s => allFrames.push(...s.frames));
@@ -143,17 +158,41 @@ function showFrame(name) {
     img.classList.toggle('active', img.dataset.name === name);
   });
 }
-// start
+
+// ═══════════════════════════════════════════════════════
+// START SCREEN
+// ═══════════════════════════════════════════════════════
 $('startBlackBox').addEventListener('click', () => {
-  startScreen.style.opacity = '0';
-  startScreen.style.transition = 'opacity 0.5s';
+  const startBg  = $('startBg');
+  const startBmc = $('startBitmapCanvas');
+
+  // Fade out start screen slowly
+  startScreen.style.opacity    = '0';
+  startScreen.style.transition = 'opacity 1.5s ease';
+  if (startBg)  { startBg.style.opacity  = '0'; startBg.style.transition  = 'opacity 1.5s ease'; }
+  if (startBmc) { startBmc.style.opacity = '0'; startBmc.style.transition = 'opacity 1.5s ease'; }
+
   setTimeout(() => {
     startScreen.style.display = 'none';
-    beginIntro();
-  }, 500);
+    if (startBg)  startBg.style.display  = 'none';
+    if (startBmc) startBmc.style.display = 'none';
+
+    // Fade in tunnel via black overlay
+    flashOverlay.style.background  = '#000000';
+    flashOverlay.style.opacity     = '1';
+    flashOverlay.style.transition  = 'none';
+
+    setTimeout(() => {
+      beginIntro();
+      flashOverlay.style.transition = 'opacity 1.8s ease';
+      flashOverlay.style.opacity    = '0';
+    }, 400);
+  }, 1500);
 });
 
-
+// ═══════════════════════════════════════════════════════
+// INTRO
+// ═══════════════════════════════════════════════════════
 function beginIntro() {
   G.phase = 'intro';
   showFrame(INTRO_FRAME);
@@ -167,6 +206,7 @@ function beginIntro() {
 }
 
 function introReply() {
+  showJester('smirkferret');
   showDialogue("Great! Let's do something simple.", []);
   setTimeout(() => {
     hideDialogue();
@@ -175,7 +215,10 @@ function introReply() {
   }, 2000);
 }
 
-
+// ═══════════════════════════════════════════════════════
+// SECTION START
+// flow: section 0 silent → jester intro → cards → section plays with effect → survive → jester reacts → repeat
+// ═══════════════════════════════════════════════════════
 function beginSection(sectionIndex) {
   G.currentSection = sectionIndex;
   G.currentFrame   = 0;
@@ -190,6 +233,7 @@ function beginSection(sectionIndex) {
   G.activeEffect   = null;
 
   if (sectionIndex === 0) {
+    // silent walk — no jester, no cards
     startFrameSequence(0);
     return;
   }
@@ -207,7 +251,9 @@ function startFrameSequence(sectionIndex) {
   scheduleNextFrame(sectionIndex);
 }
 
-
+// ═══════════════════════════════════════════════════════
+// FRAME SEQUENCER
+// ═══════════════════════════════════════════════════════
 let frameTimeout;
 
 function scheduleNextFrame(sectionIndex) {
@@ -235,7 +281,9 @@ function getRandomisedHold(base) {
   return base * (0.8 + Math.random() * 0.4);
 }
 
-
+// ═══════════════════════════════════════════════════════
+// GAME TICK
+// ═══════════════════════════════════════════════════════
 let tickRAF;
 
 function startGameTick() {
@@ -283,7 +331,9 @@ function tickLoop() {
   }
 }
 
-
+// ═══════════════════════════════════════════════════════
+// CIRCLE
+// ═══════════════════════════════════════════════════════
 function updateCircle(dt) {
   const sec = SECTIONS[G.currentSection];
   const W   = window.innerWidth;
@@ -312,15 +362,27 @@ function updateCircle(dt) {
   outerCircle.style.top       = cy + 'px';
   outerCircle.style.transform = 'translate(-50%, -50%)';
 
-  const cursorSizes = [10, 16, 22, 30];
+  // Cursor grows each section to help player track it
+  const cursorSizes = [18, 22, 26, 32];
   const cursorSize  = cursorSizes[Math.min(G.currentSection, 3)];
   cursorEl.style.width  = cursorSize + 'px';
   cursorEl.style.height = cursorSize + 'px';
 }
 
+// ═══════════════════════════════════════════════════════
+// BITMAP EFFECT
+// ═══════════════════════════════════════════════════════
+let bitmapOpacity  = 0;
+let bitmapLastDraw = 0;
 
-let bitmapOpacity = 0;
 function updateBitmapEffect(severity) {
+  // Throttle to every 200ms — prevents jitter and perf hit
+  const now = performance.now();
+  if (now - bitmapLastDraw < 200) {
+    bitmapCanvas.style.opacity = severity;
+    return;
+  }
+  bitmapLastDraw = now;
   bitmapOpacity = severity;
   bitmapCanvas.style.opacity = bitmapOpacity;
 
@@ -369,9 +431,11 @@ function fadeBitmapEffect() {
   bitmapCanvas.style.opacity = bitmapOpacity;
 }
 
-
+// ═══════════════════════════════════════════════════════
+// JESTER
+// ═══════════════════════════════════════════════════════
 function showJester(mood) {
-  jesterEl.src          = `assets/jester/${mood}.png`;
+  jesterEl.src          = `assets/ferret/${mood}.png`;
   jesterEl.style.display = 'block';
 }
 
@@ -379,7 +443,9 @@ function hideJester() {
   jesterEl.style.display = 'none';
 }
 
-// dialogue
+// ═══════════════════════════════════════════════════════
+// DIALOGUE
+// ═══════════════════════════════════════════════════════
 function showDialogue(text, buttons) {
   dialogueText.textContent = text;
   dialogueBtns.innerHTML   = '';
@@ -400,6 +466,21 @@ function hideDialogue() {
   dialogueBox.style.display = 'none';
 }
 
+// ═══════════════════════════════════════════════════════
+// CARDS
+// ═══════════════════════════════════════════════════════
+// Map card names to image filenames
+const CARD_IMAGES = {
+  '9 of diamonds':  '9ofdiamonds.png',
+  'Jack of clubs':  'jackofclubs.png',
+  '5 of spades':    '5ofspades.png',
+  'Ace of spades':  'aceofspades.png',
+  'King of hearts': 'kingofhearts.png',
+  'Queen of diamonds': 'queenofdiamonds.png',
+  'The Fool':  'thefool.png',
+  'The Tower': 'thetower.png',
+  'The Devil': 'thedevil.png',
+};
 
 function showCards(sectionIndex) {
   G.phase    = 'cards';
@@ -412,7 +493,18 @@ function showCards(sectionIndex) {
   sec.cards.forEach(card => {
     const el = document.createElement('div');
     el.className = 'card';
-    el.textContent = card.name;
+
+    const filename = CARD_IMAGES[card.name];
+    if (filename) {
+      const img = document.createElement('img');
+      img.src = 'assets/cards/' + filename;
+      img.alt = card.name;
+      img.style.cssText = 'width:100%;height:100%;object-fit:contain;pointer-events:none;';
+      el.appendChild(img);
+    } else {
+      el.textContent = card.name;
+    }
+
     el.addEventListener('click', () => pickCard(card, sectionIndex));
     cardRow.appendChild(el);
   });
@@ -429,7 +521,9 @@ function pickCard(card, sectionIndex) {
   startFrameSequence(sectionIndex);
 }
 
-
+// ═══════════════════════════════════════════════════════
+// SECTION COMPLETE
+// ═══════════════════════════════════════════════════════
 function sectionComplete(sectionIndex) {
   const nextSection = sectionIndex + 1;
 
@@ -439,7 +533,8 @@ function sectionComplete(sectionIndex) {
   }
 
   if (sectionIndex === 0) {
-    showJester('ferretscheme');
+    // First jester appearance — smirkferret
+    showJester('smirkferret');
     showDialogue('Hello there! I see you are visiting the tunnel. Care to play a game with me?', [
       { label: 'YES (enthusiasm)',      fn: introReply },
       { label: 'Yes... (apprehensive)', fn: introReply },
@@ -448,34 +543,33 @@ function sectionComplete(sectionIndex) {
   }
 
   if (sectionIndex === 1) {
-    showJester('ferretshocked');
-    showDialogue('Woah you made it... uh, care for another one?', []);
-    setTimeout(() => { hideDialogue(); hideJester(); beginSection(nextSection); }, 2400);
+    // annoyedferret reacts, then smirkferret offers next round
+    showJester('annoyedferret');
+    showDialogue('What? You made it?', []);
+    setTimeout(() => {
+      showJester('smirkferret');
+      showDialogue('Care for another one?', []);
+      setTimeout(() => { hideDialogue(); hideJester(); beginSection(nextSection); }, 2000);
+    }, 2200);
     return;
   }
 
   if (sectionIndex === 2) {
-    showJester('ferretangry');
-    showDialogue('Woah, you actually made it.', []);
-    setTimeout(() => {
-      showDialogue('Care for another one?', []);
-      setTimeout(() => { hideDialogue(); hideJester(); beginSection(nextSection); }, 1800);
-    }, 2000);
-    return;
-  }
-
-  if (sectionIndex === 3) {
-    showJester('ferrethorror');
+    // angryferret — final challenge
+    showJester('angryferret');
     showDialogue("This is getting frustrating. Let's see if you can handle THIS!", []);
-    setTimeout(() => { hideDialogue(); hideJester(); beginSection(nextSection); }, 2600);
+    setTimeout(() => { hideDialogue(); hideJester(); beginSection(nextSection); }, 2800);
     return;
   }
 }
 
-
+// ═══════════════════════════════════════════════════════
+// P5 EFFECTS  —  stub, build your sketches here
+// ═══════════════════════════════════════════════════════
 let p5Instance  = null;
 let effectRunning = false;
 
+// Holds both p5 instances when The Devil triggers combined effect
 let p5Instance2 = null;
 
 function startActiveEffect(cardName, effect, sectionIndex, sectionMs) {
@@ -508,7 +602,9 @@ function stopActiveEffect() {
   if (p5Instance2) { p5Instance2.remove(); p5Instance2 = null; }
 }
 
-
+// ═══════════════════════════════════════════════════════
+// WIN / LOSE
+// ═══════════════════════════════════════════════════════
 function triggerWin() {
   G.phase = 'win';
   stopGameTick();
@@ -519,7 +615,7 @@ function triggerWin() {
 
   showFrame(EXIT_FRAME);
   setTimeout(() => {
-    showJester('ferrethorror');
+    showJester('annoyedferret');
     showDialogue("I'm not going to be receiving a bonus this quarter.", []);
     setTimeout(() => {
       hideJester();
@@ -546,7 +642,7 @@ function triggerLose() {
     flashOverlay.style.background = '#ffffff';
     flashOverlay.style.transition = 'opacity 0.8s';
     flashOverlay.style.opacity    = '0';
-    showJester('ferretshocked');
+    showJester('smirkferret');
     showDialogue('Be careful not to trip now! We have more games to play.', []);
     setTimeout(() => {
       hideJester();
@@ -577,10 +673,16 @@ function showEndCard(message, isWin) {
   endScreen.appendChild(msg);
   endScreen.appendChild(btn);
 
+  // Show about button
+  const aboutBtn = document.getElementById('aboutBtn');
+  if (aboutBtn) aboutBtn.style.display = 'block';
+
   if (isWin) lingerEffect();
 }
 
-
+// ═══════════════════════════════════════════════════════
+// LINGERING EXIT EFFECT
+// ═══════════════════════════════════════════════════════
 function lingerEffect() {
   p5CanvasDiv.style.display = 'block';
   if (p5Instance) p5Instance.remove();
@@ -613,6 +715,66 @@ function lingerEffect() {
   }, p5CanvasDiv);
 }
 
+// ═══════════════════════════════════════════════════════
+// START SCREEN BITMAP BACKGROUND
+// Renders intro.jpg as a light grey halftone on white
+// ═══════════════════════════════════════════════════════
+function renderStartBitmap() {
+  const img = new Image();
+  img.crossOrigin = 'anonymous';
+  img.src = 'assets/tunnel/intro.jpg';
+  img.onload = () => {
+    const W = window.innerWidth;
+    const H = window.innerHeight;
+    startBitmapCanvas.width  = W;
+    startBitmapCanvas.height = H;
+    const ctx = startBitmapCanvas.getContext('2d');
+
+    const gridSize = 10; // dot grid spacing
+    const sampleW  = Math.floor(W / gridSize);
+    const sampleH  = Math.floor(H / gridSize);
+
+    // Sample image at reduced resolution
+    const off  = document.createElement('canvas');
+    off.width  = sampleW;
+    off.height = sampleH;
+    const octx = off.getContext('2d');
+    octx.drawImage(img, 0, 0, sampleW, sampleH);
+    const data = octx.getImageData(0, 0, sampleW, sampleH).data;
+
+    // White background
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, W, H);
+
+    // Draw halftone dots — light grey, size mapped to brightness
+    for (let y = 0; y < sampleH; y++) {
+      for (let x = 0; x < sampleW; x++) {
+        const idx        = (y * sampleW + x) * 4;
+        const r          = data[idx];
+        const g          = data[idx + 1];
+        const b          = data[idx + 2];
+        const brightness = (r * 0.299 + g * 0.587 + b * 0.114) / 255;
+        // Invert — dark areas of photo become larger dots
+        const dotRadius  = (1 - brightness) * gridSize * 0.48;
+        if (dotRadius < 0.5) continue;
+        // Light grey dots
+        const grey = Math.round(180 + brightness * 60); // 180–240 range
+        ctx.beginPath();
+        ctx.arc(
+          x * gridSize + gridSize / 2,
+          y * gridSize + gridSize / 2,
+          dotRadius, 0, Math.PI * 2
+        );
+        ctx.fillStyle = `rgb(${grey},${grey},${grey})`;
+        ctx.fill();
+      }
+    }
+  };
+}
+
+// ═══════════════════════════════════════════════════════
+// RESIZE + INIT
+// ═══════════════════════════════════════════════════════
 window.addEventListener('resize', () => {
   bitmapCanvas.width  = window.innerWidth;
   bitmapCanvas.height = window.innerHeight;
@@ -621,3 +783,10 @@ window.addEventListener('resize', () => {
 bitmapCanvas.width  = window.innerWidth;
 bitmapCanvas.height = window.innerHeight;
 preloadImages();
+renderStartBitmap();
+
+// About button toggle
+document.getElementById('aboutBtn').addEventListener('click', () => {
+  const popup = document.getElementById('aboutPopup');
+  popup.style.display = popup.style.display === 'flex' ? 'none' : 'flex';
+});
